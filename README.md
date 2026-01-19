@@ -26,7 +26,7 @@ For production use, you can:
 
 ## Configuration
 
-Config file: `WebVoiceChat.json`
+Config file: `HyVoiceChat.json`
 
 | Setting | Default            | Description |
 |---------|--------------------|-------------|

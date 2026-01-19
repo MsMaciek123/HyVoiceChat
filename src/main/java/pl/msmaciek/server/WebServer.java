@@ -129,7 +129,7 @@ public class WebServer {
             return keystoreFile;
         }
 
-        File modFile = new File("mods/pl.msmaciek_webvoicechat/" + keystorePath);
+        File modFile = new File("mods/pl.msmaciek_hyvoicechat/" + keystorePath);
         if (modFile.exists()) {
             return modFile;
         }

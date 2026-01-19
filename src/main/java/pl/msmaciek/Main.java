@@ -25,7 +25,7 @@ public class Main extends JavaPlugin {
     public Main(@NonNullDecl JavaPluginInit init) {
         super(init);
         instance = this;
-        CONFIG = this.withConfig("WebVoiceChat", VoiceChatConfig.CODEC);
+        CONFIG = this.withConfig("HyVoiceChat", VoiceChatConfig.CODEC);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class Main extends JavaPlugin {
         webServer = new WebServer(this.getLogger(), CONFIG.get());
         webServer.startAsync();
 
-        this.getLogger().at(Level.INFO).log("WebVoiceChat mod initialized!");
+        this.getLogger().at(Level.INFO).log("HyVoiceChat mod initialized!");
         this.getLogger().at(Level.INFO).log("Voice chat available at http://localhost:" + CONFIG.get().getWebSocketPort());
     }
 
