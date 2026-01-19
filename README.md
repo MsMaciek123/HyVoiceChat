@@ -35,13 +35,13 @@ Config file: `WebVoiceChat.json`
 | `SSLKeystorePath` | `example.keystore` | Path to Java keystore file |
 | `SSLKeystorePassword` | `changeit`         | Keystore password |
 | `MaxDistance` | `75.0`             | Maximum distance (blocks) to hear other players |
-| `DistanceFormula` | `LINEAR`           | How volume drops with distance: `LINEAR`, `EXPONENTIAL`, `INVERSE_SQUARE` |
+| `DistanceFormula` | `EXPONENTIAL`      | How volume drops with distance: `LINEAR`, `EXPONENTIAL`, `INVERSE_SQUARE` |
 | `VoiceDimension` | `3D`               | `3D` for spatial audio, `2D` for flat (no left/right) |
-| `RolloffFactor` | `1.0`              | How quickly volume decreases with distance |
-| `RefDistance` | `1.0`              | Distance at which volume is 100% |
+| `RolloffFactor` | `1.5`              | How quickly volume decreases with distance |
+| `RefDistance` | `10.0`             | Distance at which volume is 100% |
 | `ServerCutoffMultiplier` | `1.1`              | Server stops sending audio beyond MaxDistance * this value |
-| `Blend2dDistance` | `10.0`             | Distance below which audio is more centered |
-| `Full3dDistance` | `30.0`             | Distance at which full 3D positioning kicks in |
+| `Blend2dDistance` | `20.0`             | Distance below which audio is more centered |
+| `Full3dDistance` | `50.0`             | Distance at which full 3D positioning kicks in |
 
 ## Commands
 
