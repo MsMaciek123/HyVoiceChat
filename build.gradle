@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
+    id 'com.gradleup.shadow' version '9.3.1'
+}
+
+version = project.version
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Hytale Server SDK
+    implementation(files("run/Server/HytaleServer.jar"))
+
+    // Jetty for embedded HTTP server and WebSocket
+    implementation 'org.eclipse.jetty:jetty-server:11.0.18'
+    implementation 'org.eclipse.jetty:jetty-servlet:11.0.18'
+    implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:11.0.18'
+    implementation 'org.eclipse.jetty.websocket:websocket-jetty-api:11.0.18'
+
+    // JSON processing
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.40'
+    annotationProcessor 'org.projectlombok:lombok:1.18.40'
+}
+
+processResources {
+    var expandProps = [
+        'name'          : project.name,
+        'version'       : project.version,
+        'group'         : project.group,
+        'description'   : mod_description,
+        'website'       : website,
+        'server_version': server_version,
+        'entry_point'   : entry_point
+    ]
+
+    filesMatching(['manifest.json']) {
+        expand expandProps
+    }
+    inputs.properties(expandProps)
+}
+
+def serverRunDir = file("$projectDir/run")
+
+idea.project.settings.runConfigurations {
+    'HytaleServer'(org.jetbrains.gradle.ext.Application) {
+        mainClass = 'com.hypixel.hytale.Main'
+        moduleName = project.idea.module.name + '.main'
+        programParameters = "--allow-op --disable-sentry --assets=$projectDir/run/Assets.zip --mods=${file("src/main/").absolutePath} --auth-mode=authenticated"
+        workingDirectory = serverRunDir.absolutePath
+    }
+}
+
+shadowJar {
+    minimize()
+}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hytale Voice Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h2>Hytale Voice Chat</h2>
+            <p class="subtitle">Proximity voice chat for your server</p>
+            <div id="connectStatus" class="status-text">Connecting to server...</div>
+
+            <div class="form-group" id="verificationSection">
+                <label>Verification</label>
+                <p class="help-text">Type this command in game chat to verify:</p>
+                <div class="code-box" id="verificationCommand">/voicechat ------</div>
+                <p id="verificationStatus" class="help-text">Waiting for verification...</p>
+            </div>
+
+            <div class="form-group">
+                <label for="micSelect">Microphone</label>
+                <select id="micSelect"><option value="">Loading...</option></select>
+            </div>
+            <button class="btn" id="joinBtn" disabled>Join Voice Chat</button>
+        </div>
+    </div>
+
+    <div class="container hidden" id="mainContainer">
+        <header class="header">
+            <h1>Hytale Voice Chat</h1>
+            <div class="status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Disconnected</span>
+                <span class="ping" id="pingDisplay">--ms</span>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="panel users-panel">
+                <h2>Users</h2>
+                <div class="users-list" id="usersList">
+                    <p class="empty-state">No users connected</p>
+                </div>
+            </section>
+
+            <aside class="sidebar">
+                <section class="panel">
+                    <h2>Audio</h2>
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>Mic Volume</label>
+                            <div class="slider-row">
+                                <input type="range" id="micVolume" min="0" max="200" value="100">
+                                <span id="micVolumeValue">100%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label>Voice Threshold</label>
+                            <div class="slider-row">
+                                <input type="range" id="thresholdSlider" min="0" max="100" value="5">
+                                <span id="thresholdValue">5%</span>
+                            </div>
+                            <div class="meter">
+                                <div class="meter-fill" id="micMeter"></div>
+                                <div class="meter-threshold" id="meterThreshold"></div>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label>Output Volume</label>
+                            <div class="slider-row">
+                                <input type="range" id="outputVolume" min="0" max="100" value="100">
+                                <span id="outputVolumeValue">100%</span>
+                            </div>
+                        </div>
+
+                        <div class="button-row">
+                            <button class="btn-toggle" id="muteBtn">Mute</button>
+                            <button class="btn-toggle" id="deafenBtn">Deafen</button>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </main>
+
+        <footer class="footer">
+            <p>Made by MsMaciek</p>
+        </footer>
+    </div>
+
+    <script src="js/settings.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/connection.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
