@@ -52,13 +52,13 @@ public class VoiceChatConfig {
     private String sslKeystorePath = "example.keystore";
     private String sslKeystorePassword = "changeit";
     private double maxDistance = 75.0;
-    private DistanceFormula distanceFormula = DistanceFormula.LINEAR;
+    private DistanceFormula distanceFormula = DistanceFormula.EXPONENTIAL;
     private VoiceDimension voiceDimension = VoiceDimension.THREE_D;
-    private double rolloffFactor = 1.0;
-    private double refDistance = 1.0;
+    private double rolloffFactor = 1.5;
+    private double refDistance = 10.0;
     private double serverCutoffMultiplier = 1.1;
-    private double blend2dDistance = 10.0;
-    private double full3dDistance = 30.0;
+    private double blend2dDistance = 20.0;
+    private double full3dDistance = 50.0;
 
     public VoiceChatConfig() {}
 

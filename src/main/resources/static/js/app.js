@@ -157,6 +157,7 @@ class VoiceChat {
                     full3dDistance: msg.full3dDistance || 20.0
                 };
                 console.log('Server config received/updated:', this.serverConfig);
+                this.audio.updatePannerSettings(this.serverConfig);
                 break;
 
             case 'verification_code':

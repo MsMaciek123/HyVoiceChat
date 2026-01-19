@@ -138,6 +138,45 @@ class AudioManager {
     }
 
     /**
+     * Apply panner settings from server config to a single panner
+     */
+    applyPannerSettings(panner, serverConfig) {
+        const distanceFormula = serverConfig ? serverConfig.distanceFormula : 'LINEAR';
+        switch (distanceFormula) {
+            case 'LINEAR':
+                panner.distanceModel = 'linear';
+                break;
+            case 'EXPONENTIAL':
+                panner.distanceModel = 'exponential';
+                break;
+            case 'INVERSE_SQUARE':
+                panner.distanceModel = 'inverse';
+                break;
+        }
+
+        panner.refDistance = serverConfig ? serverConfig.refDistance : 1.0;
+        panner.maxDistance = serverConfig ? serverConfig.maxDistance : 150;
+        panner.rolloffFactor = serverConfig ? serverConfig.rolloffFactor : 1.0;
+    }
+
+    /**
+     * Update panner settings when server config changes
+     */
+    updatePannerSettings(serverConfig) {
+        if (!serverConfig) return;
+
+        for (const [id, p] of this.players) {
+            this.applyPannerSettings(p.panner, serverConfig);
+
+            // Update position based on new config (2D vs 3D)
+            const user = this.voiceChat.users.get(id);
+            if (user) {
+                this.updatePannerPosition(p.panner, user, this.voiceChat.position, serverConfig);
+            }
+        }
+    }
+
+    /**
      * Play received audio from a user
      */
     playAudio(odapId, data, userVolume, masterVolume, serverConfig) {
@@ -185,22 +224,7 @@ class AudioManager {
 
         p.panner.panningModel = 'HRTF';
 
-        const distanceFormula = serverConfig ? serverConfig.distanceFormula : 'LINEAR';
-        switch (distanceFormula) {
-            case 'LINEAR':
-                p.panner.distanceModel = 'linear';
-                break;
-            case 'EXPONENTIAL':
-                p.panner.distanceModel = 'exponential';
-                break;
-            case 'INVERSE_SQUARE':
-                p.panner.distanceModel = 'inverse';
-                break;
-        }
-
-        p.panner.refDistance = serverConfig ? serverConfig.refDistance : 1.0;
-        p.panner.maxDistance = serverConfig ? serverConfig.maxDistance : 150;
-        p.panner.rolloffFactor = serverConfig ? serverConfig.rolloffFactor : 1.0;
+        this.applyPannerSettings(p.panner, serverConfig);
 
         const user = this.voiceChat.users.get(odapId);
         if (user) {
