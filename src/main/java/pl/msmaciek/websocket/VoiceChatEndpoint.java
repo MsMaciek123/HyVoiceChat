@@ -96,7 +96,6 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
             switch (type) {
                 case "check_verification" -> sendVerificationStatus(getSession());
                 case "join" -> handleJoin();
-                case "speaking" -> handleSpeaking(json);
                 case "ping" -> handlePing(json);
             }
         } catch (Exception e) {
@@ -124,7 +123,7 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
         for (UserSession s : sessions.getAll()) {
             if (s.getOdapId() != odapId && s.getSession().isOpen() && s.getName() != null && s.getPlayerUuid() != null) {
                 // Calculate distance and skip if beyond server cutoff
-                double distance = userSession.distanceTo(s, use2D);
+                double distance = userSession.distanceTo(s);
                 if (distance > serverCutoff) {
                     continue; // Don't send audio to players too far away
                 }
@@ -155,10 +154,7 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
 
         sessions.remove(odapId);
 
-        JsonObject msg = new JsonObject();
-        msg.addProperty("type", "user_left");
-        msg.addProperty("id", odapId);
-        broadcast(msg);
+        SessionManager.getInstance().broadcastPlayerSnapshot();
 
         System.out.println("WebSocket disconnected: " + odapId);
     }
@@ -203,6 +199,14 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
             return;
         }
 
+        // Disconnect any existing session with this username (kick the older one)
+        UserSession existingSession = sessions.disconnectByUsername(playerName);
+        if (existingSession != null) {
+            System.out.println("Disconnected existing session for: " + playerName);
+            // Release the username claim from the old session
+            PlayerTracker.getInstance().releaseUsername(playerName);
+        }
+
         // Try to claim the username
         if (!PlayerTracker.getInstance().tryClaimUsername(playerName)) {
             JsonObject errorMsg = new JsonObject();
@@ -219,64 +223,22 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
         userSession.setName(playerName);
         sessions.linkToPlayer(userSession, playerUuid);
 
-        // Send existing users to the new user
-        for (UserSession s : sessions.getAll()) {
-            if (s.getOdapId() != odapId && s.getName() != null) {
-                JsonObject info = new JsonObject();
-                info.addProperty("type", "user_joined");
-                info.addProperty("id", s.getOdapId());
-                info.addProperty("name", s.getName());
-                info.addProperty("x", s.getX());
-                info.addProperty("y", s.getY());
-                info.addProperty("z", s.getZ());
-                info.addProperty("yaw", s.getYaw());
-                send(getSession(), info);
-            }
-        }
-
-        // Broadcast new user to everyone
+        // Send join success - snapshots will handle player list
         JsonObject joinMsg = new JsonObject();
-        joinMsg.addProperty("type", "user_joined");
+        joinMsg.addProperty("type", "join_success");
         joinMsg.addProperty("id", odapId);
         joinMsg.addProperty("name", playerName);
-        joinMsg.addProperty("x", userSession.getX());
-        joinMsg.addProperty("y", userSession.getY());
-        joinMsg.addProperty("z", userSession.getZ());
-        joinMsg.addProperty("yaw", userSession.getYaw());
-        broadcast(joinMsg);
+        send(getSession(), joinMsg);
 
         System.out.println("User joined voice chat: " + playerName + " (ID: " + odapId + ")");
     }
 
-    private void handleSpeaking(JsonObject json) {
-        boolean speaking = json.get("speaking").getAsBoolean();
-        userSession.setSpeaking(speaking);
-
-        JsonObject msg = new JsonObject();
-        msg.addProperty("type", "speaking_update");
-        msg.addProperty("id", odapId);
-        msg.addProperty("speaking", speaking);
-        broadcast(msg);
-    }
 
     private void handlePing(JsonObject json) {
         JsonObject msg = new JsonObject();
         msg.addProperty("type", "pong");
         msg.addProperty("timestamp", json.get("timestamp").getAsLong());
         send(getSession(), msg);
-    }
-
-    private void broadcast(JsonObject json) {
-        String message = gson.toJson(json);
-        for (UserSession s : sessions.getAll()) {
-            if (s.getSession().isOpen()) {
-                try {
-                    s.getSession().getRemote().sendString(message);
-                } catch (IOException e) {
-                    System.err.println("Broadcast error: " + e.getMessage());
-                }
-            }
-        }
     }
 
     private void send(Session session, JsonObject json) {

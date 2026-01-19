@@ -1,5 +1,6 @@
 package pl.msmaciek;
 
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.player.AddPlayerToWorldEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
@@ -13,8 +14,9 @@ import pl.msmaciek.commands.VoiceChatVerifyCommand;
 import pl.msmaciek.config.VoiceChatConfig;
 import pl.msmaciek.player.PlayerTracker;
 import pl.msmaciek.server.WebServer;
-import pl.msmaciek.systems.MovementTickingSystem;
+import pl.msmaciek.session.SessionManager;
 
+import java.awt.*;
 import java.util.logging.Level;
 
 public class Main extends JavaPlugin {
@@ -33,19 +35,15 @@ public class Main extends JavaPlugin {
         super.setup();
         CONFIG.save();
 
-        // Register movement tracking system
-        this.getEntityStoreRegistry().registerSystem(new MovementTickingSystem());
-
-        // Register player join event
         this.getEventRegistry().registerGlobal(AddPlayerToWorldEvent.class, this::onPlayerJoin);
 
-        // Register console commands
         this.getCommandRegistry().registerCommand(new VoiceChatReloadCommand());
         this.getCommandRegistry().registerCommand(new VoiceChatVerifyCommand());
 
-        // Start WebSocket server
         webServer = new WebServer(this.getLogger(), CONFIG.get());
         webServer.startAsync();
+
+        SessionManager.getInstance().startScheduler(CONFIG.get().getUpdateIntervalMs());
 
         this.getLogger().at(Level.INFO).log("HyVoiceChat mod initialized!");
         this.getLogger().at(Level.INFO).log("Voice chat available at http://localhost:" + CONFIG.get().getWebSocketPort());
@@ -63,6 +61,12 @@ public class Main extends JavaPlugin {
             "unknown" // IP not available from Hytale API yet
         );
 
+        String joinMessage = CONFIG.get().getJoinMessage();
+        if (joinMessage != null && !joinMessage.isEmpty()) {
+            String formattedMessage = joinMessage.replace("{port}", String.valueOf(CONFIG.get().getWebSocketPort()));
+            player.sendMessage(Message.raw("[VoiceChat] " + formattedMessage).color(Color.CYAN));
+        }
+
         this.getLogger().at(Level.INFO).log("Player joined: " + player.getDisplayName());
     }
 
@@ -70,6 +74,7 @@ public class Main extends JavaPlugin {
     @Override
     protected void shutdown() {
         super.shutdown();
+        SessionManager.getInstance().stopScheduler();
         if (webServer != null) {
             webServer.stop();
         }

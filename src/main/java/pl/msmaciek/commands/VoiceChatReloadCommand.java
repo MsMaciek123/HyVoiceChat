@@ -38,29 +38,17 @@ public class VoiceChatReloadCommand extends AbstractAsyncCommand {
             return CompletableFuture.completedFuture(null);
         }
 
-        // Console execution - reload config
-        try {
-            Main.CONFIG.load();
-            System.out.println("[VoiceChat] Configuration reloaded successfully!");
-            System.out.println("[VoiceChat] Current settings:");
-            System.out.println("  - WebSocketPort: " + Main.CONFIG.get().getWebSocketPort());
-            System.out.println("  - UseSSL: " + Main.CONFIG.get().isUseSSL());
-            System.out.println("  - MaxDistance: " + Main.CONFIG.get().getMaxDistance());
-            System.out.println("  - DistanceFormula: " + Main.CONFIG.get().getDistanceFormula());
-            System.out.println("  - VoiceDimension: " + Main.CONFIG.get().getVoiceDimension());
+        Main.CONFIG.load();
+        System.out.println("[VoiceChat] Configuration reloaded successfully!");
 
-            int count = 0;
-            for (UserSession session : SessionManager.getInstance().getAll()) {
-                if (session.getSession().isOpen()) {
-                    session.sendConfig(Main.CONFIG.get());
-                    count++;
-                }
+        int count = 0;
+        for (UserSession session : SessionManager.getInstance().getAll()) {
+            if (session.getSession().isOpen()) {
+                session.sendConfig(Main.CONFIG.get());
+                count++;
             }
-            System.out.println("[VoiceChat] Updated config sent to " + count + " connected user(s)");
-        } catch (Exception e) {
-            System.err.println("[VoiceChat] Failed to reload configuration: " + e.getMessage());
-            e.printStackTrace();
         }
+        System.out.println("[VoiceChat] Updated config sent to " + count + " connected user(s)");
 
         return CompletableFuture.completedFuture(null);
     }

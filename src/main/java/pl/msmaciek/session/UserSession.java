@@ -21,7 +21,6 @@ public class UserSession {
 
     @Setter private String name;
     @Setter private UUID playerUuid;
-    @Setter private boolean speaking;
 
     /**
      * Get live position from PlayerTracker (server-authoritative).
@@ -66,18 +65,17 @@ public class UserSession {
     /**
      * Calculate distance to another session.
      * @param other The other session
-     * @param use2D If true, ignores Y coordinate (for 2D voice)
      * @return Distance in blocks
      */
-    public double distanceTo(UserSession other, boolean use2D) {
+    public double distanceTo(UserSession other) {
         Position myPos = getPosition();
         Position otherPos = other.getPosition();
 
-        if (myPos == null || otherPos == null) {
+        if (myPos == null || otherPos == null || !myPos.isSameWorld(otherPos)) {
             return Double.MAX_VALUE; // Cannot calculate, assume far away
         }
 
-        return myPos.distanceTo(otherPos, use2D);
+        return myPos.distanceTo(otherPos);
     }
 
     /**

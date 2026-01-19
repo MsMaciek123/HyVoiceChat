@@ -147,15 +147,7 @@ class VoiceChat {
                 break;
 
             case 'config':
-                this.serverConfig = {
-                    maxDistance: msg.maxDistance,
-                    distanceFormula: msg.distanceFormula,
-                    voiceDimension: msg.voiceDimension,
-                    rolloffFactor: msg.rolloffFactor,
-                    refDistance: msg.refDistance,
-                    blend2dDistance: msg.blend2dDistance || 5.0,
-                    full3dDistance: msg.full3dDistance || 20.0
-                };
+                this.serverConfig = msg;
                 console.log('Server config received/updated:', this.serverConfig);
                 this.audio.updatePannerSettings(this.serverConfig);
                 break;
@@ -177,20 +169,17 @@ class VoiceChat {
                 alert('Join error: ' + msg.error);
                 break;
 
-            case 'user_joined':
-                this.handleUserJoined(msg);
+            case 'kicked':
+                alert('Disconnected: ' + (msg.reason || 'You have been kicked.'));
+                this.onDisconnected();
                 break;
 
-            case 'user_left':
-                this.handleUserLeft(msg);
+            case 'join_success':
+                this.handleJoinSuccess(msg);
                 break;
 
-            case 'position_update':
-                this.handlePositionUpdate(msg);
-                break;
-
-            case 'speaking_update':
-                this.handleSpeakingUpdate(msg);
+            case 'players_snapshot':
+                this.handlePlayersSnapshot(msg);
                 break;
 
             case 'pong':
@@ -206,68 +195,88 @@ class VoiceChat {
         const senderId = view.getInt32(0);
         if (senderId === this.odapId) return;
 
+        // Mark sender as speaking (will be cleared by timeout)
+        this.markUserSpeaking(senderId);
+
         const userVol = this.settings.getUserVolume(senderId);
         const masterVol = this.settings.get('masterVolume');
         this.audio.playAudio(senderId, data.slice(4), userVol, masterVol, this.serverConfig);
     }
 
-    handleUserJoined(msg) {
-        if (msg.id === this.odapId) {
-            // We joined successfully
-            this.ui.showMainView();
-            this.ui.setVoiceStatus(true, this.userName);
-            this.startPing();
-
-            this.users.set(this.odapId, {
-                id: this.odapId,
-                name: this.userName,
-                x: msg.x,
-                y: msg.y,
-                z: msg.z,
-                yaw: msg.yaw || 0,
-                speaking: false
-            });
-
-            this.position = { x: msg.x, y: msg.y, z: msg.z, yaw: msg.yaw || 0 };
-            this.renderUsers();
-            this.startAudio();
-        } else {
-            // Another user joined
-            this.users.set(msg.id, { ...msg, yaw: msg.yaw || 0, speaking: false });
-            this.renderUsers();
-        }
-    }
-
-    handleUserLeft(msg) {
-        this.users.delete(msg.id);
-        this.audio.removePlayer(msg.id);
-        this.renderUsers();
-    }
-
-    handlePositionUpdate(msg) {
-        const u = this.users.get(msg.id);
-        if (u) {
-            u.x = msg.x;
-            u.y = msg.y;
-            u.z = msg.z;
-            u.yaw = msg.yaw || 0;
-
-            if (msg.id === this.odapId) {
-                this.position = { x: msg.x, y: msg.y, z: msg.z, yaw: msg.yaw || 0 };
-                this.audio.updateListenerOrientation();
-            }
-
-            this.renderUsers();
-            this.audio.updatePanner(msg.id);
-        }
-    }
-
-    handleSpeakingUpdate(msg) {
-        const user = this.users.get(msg.id);
+    markUserSpeaking(userId) {
+        const user = this.users.get(userId);
         if (user) {
-            user.speaking = msg.speaking;
+            user.speaking = true;
+            user.speakingTimeout && clearTimeout(user.speakingTimeout);
+            user.speakingTimeout = setTimeout(() => {
+                user.speaking = false;
+                this.renderUsers();
+            }, 300); // Clear speaking after 300ms of no audio
             this.renderUsers();
         }
+    }
+
+    handleJoinSuccess(msg) {
+        this.odapId = msg.id;
+        this.userName = msg.name;
+        this.ui.showMainView();
+        this.ui.setVoiceStatus(true, this.userName);
+        this.startPing();
+        this.startAudio();
+    }
+
+    handlePlayersSnapshot(msg) {
+        // Update self position
+        const self = msg.self;
+        this.odapId = self.id;
+        this.position = { x: self.x, y: self.y, z: self.z, yaw: self.yaw };
+
+        // Build new users map (preserve speaking state from audio)
+        const newUserIds = new Set();
+
+        // Add self
+        newUserIds.add(self.id);
+        const existingSelf = this.users.get(self.id);
+        this.users.set(self.id, {
+            id: self.id,
+            name: self.name,
+            x: self.x,
+            y: self.y,
+            z: self.z,
+            yaw: self.yaw,
+            speaking: existingSelf?.speaking || false,
+            speakingTimeout: existingSelf?.speakingTimeout
+        });
+
+        // Add nearby players
+        for (const player of msg.players) {
+            newUserIds.add(player.id);
+            const existing = this.users.get(player.id);
+            this.users.set(player.id, {
+                id: player.id,
+                name: player.name,
+                x: player.x,
+                y: player.y,
+                z: player.z,
+                yaw: player.yaw,
+                speaking: existing?.speaking || false,
+                speakingTimeout: existing?.speakingTimeout
+            });
+        }
+
+        // Remove players no longer in range
+        for (const [id, user] of this.users) {
+            if (!newUserIds.has(id)) {
+                user.speakingTimeout && clearTimeout(user.speakingTimeout);
+                this.users.delete(id);
+                this.audio.removePlayer(id);
+            }
+        }
+
+        // Update audio and UI
+        this.audio.updateListenerOrientation();
+        this.audio.updateAllPanners();
+        this.renderUsers();
     }
 
     async startAudio() {
@@ -293,17 +302,13 @@ class VoiceChat {
             const pct = Math.min(100, (avg / 128) * 100);
             this.ui.setMicMeter(pct);
 
-            const wasSpeaking = this.speaking;
+            // Track local speaking state for UI (green indicator for self)
             const threshold = this.settings.get('threshold');
-            this.speaking = pct > threshold && !this.muted;
-
-            if (wasSpeaking !== this.speaking) {
-                this.connection.send({ type: 'speaking', speaking: this.speaking });
-                const self = this.users.get(this.odapId);
-                if (self) {
-                    self.speaking = this.speaking;
-                    this.renderUsers();
-                }
+            const isSpeaking = pct > threshold && !this.muted;
+            const self = this.users.get(this.odapId);
+            if (self && self.speaking !== isSpeaking) {
+                self.speaking = isSpeaking;
+                this.renderUsers();
             }
 
             requestAnimationFrame(update);
@@ -350,8 +355,7 @@ class VoiceChat {
 
     calculateDistance(user) {
         const dx = this.position.x - user.x;
-        const use2D = this.serverConfig && this.serverConfig.voiceDimension === '2D';
-        const dy = use2D ? 0 : (this.position.y - user.y);
+        const dy = this.position.y - user.y;
         const dz = this.position.z - user.z;
         return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
@@ -376,9 +380,7 @@ class VoiceChat {
             this.audio.micStream.getAudioTracks().forEach(t => t.enabled = !this.muted);
         }
 
-        if (this.muted) {
-            this.connection.send({ type: 'speaking', speaking: false });
-        } else if (this.deafened) {
+        if (!this.muted && this.deafened) {
             // Unmuting - also undeafen
             this.deafened = false;
             this.ui.setDeafenState(false);
@@ -396,7 +398,6 @@ class VoiceChat {
             if (this.audio.micStream) {
                 this.audio.micStream.getAudioTracks().forEach(t => t.enabled = false);
             }
-            this.connection.send({ type: 'speaking', speaking: false });
         }
     }
 

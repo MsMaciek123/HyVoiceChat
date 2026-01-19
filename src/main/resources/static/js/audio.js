@@ -72,17 +72,19 @@ class AudioManager {
 
     /**
      * Update panner position for a specific user based on relative angle
+     * Note: 2D voice means mono audio (no stereo panning), but distance uses all 3 axes.
      */
     updatePannerPosition(panner, user, listenerPosition, serverConfig) {
         const dx = user.x - listenerPosition.x;
         const dy = user.y - listenerPosition.y;
         const dz = user.z - listenerPosition.z;
         const horizontalDist = Math.sqrt(dx * dx + dz * dz);
+        const fullDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
         if (!serverConfig || serverConfig.voiceDimension === '2D') {
             panner.positionX.value = 0;
             panner.positionY.value = 0;
-            panner.positionZ.value = -horizontalDist;
+            panner.positionZ.value = -fullDist;
             return;
         }
 

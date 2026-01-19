@@ -72,11 +72,18 @@ public class PlayerTracker {
      * Update a player's position (called from movement ticking system).
      */
     public void updatePosition(UUID uuid, double x, double y, double z, float yaw) {
+        updatePosition(uuid, x, y, z, yaw, null);
+    }
+
+    /**
+     * Update a player's position with world UUID (called from movement ticking system).
+     */
+    public void updatePosition(UUID uuid, double x, double y, double z, float yaw, UUID worldUuid) {
         Position pos = playerPositions.get(uuid);
         if (pos != null) {
-            pos.set(x, y, z, yaw);
+            pos.set(x, y, z, yaw, worldUuid);
         } else {
-            playerPositions.put(uuid, new Position(x, y, z, yaw));
+            playerPositions.put(uuid, new Position(x, y, z, yaw, worldUuid));
         }
     }
 
@@ -146,8 +153,6 @@ public class PlayerTracker {
             return false;
         }
 
-
-        // Claim it
         assignedUsernames.add(lowerUsername);
         return true;
     }

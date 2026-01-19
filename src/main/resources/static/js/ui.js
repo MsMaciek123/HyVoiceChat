@@ -137,19 +137,19 @@ class UIManager {
             return a.name.localeCompare(b.name);
         });
 
-        container.innerHTML = sorted.map(u => {
-            const isSelf = u.id === selfId;
-            const vol = getUserVolume(u.id);
-            const distance = isSelf ? 0 : calculateDistance(u);
+
+        container.innerHTML = sorted.map(user => {
+            const isSelf = user.id === selfId;
+            const vol = getUserVolume(user.id);
+            const distance = isSelf ? 0 : calculateDistance(user);
             const distanceText = isSelf ? '' : ` (${distance.toFixed(1)}m)`;
 
             return `
-                <div class="user-item ${u.speaking ? 'speaking' : ''} ${isSelf ? 'self' : ''}">
+                <div class="user-item ${user.speaking ? 'speaking' : ''} ${isSelf ? 'self' : ''}">
                     <div class="user-info">
-                        <div class="user-name">${this.escapeHtml(u.name)}${isSelf ? ' <span class="tag">(you)</span>' : ''}${distanceText}</div>
-                        <div class="user-pos">${u.x.toFixed(1)}, ${u.y.toFixed(1)}, ${u.z.toFixed(1)}</div>
+                        <div class="user-name">${this.escapeHtml(user.name)}${isSelf ? ' <span class="tag">(you)</span>' : ''}${distanceText}</div>
                     </div>
-                    ${!isSelf ? `<div class="user-volume"><input type="range" min="0" max="200" value="${vol}" oninput="chat.setUserVolume(${u.id}, this.value)"></div>` : ''}
+                    ${!isSelf ? `<div class="user-volume"><input type="range" min="0" max="200" value="${vol}" oninput="chat.setUserVolume(${user.id}, this.value)"></div>` : ''}
                 </div>`;
         }).join('');
     }

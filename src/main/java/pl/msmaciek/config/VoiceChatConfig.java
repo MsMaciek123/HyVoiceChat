@@ -21,6 +21,9 @@ public class VoiceChatConfig {
             .append(new KeyedCodec<>("SSLKeystorePassword", Codec.STRING),
                     (config, value, extraInfo) -> config.sslKeystorePassword = value,
                     (config, extraInfo) -> config.sslKeystorePassword).add()
+            .append(new KeyedCodec<>("JoinMessage", Codec.STRING),
+                    (config, value, extraInfo) -> config.joinMessage = value,
+                    (config, extraInfo) -> config.joinMessage).add()
             .append(new KeyedCodec<>("MaxDistance", Codec.DOUBLE),
                     (config, value, extraInfo) -> config.maxDistance = value,
                     (config, extraInfo) -> config.maxDistance).add()
@@ -45,12 +48,16 @@ public class VoiceChatConfig {
             .append(new KeyedCodec<>("Full3dDistance", Codec.DOUBLE),
                     (config, value, extraInfo) -> config.full3dDistance = value,
                     (config, extraInfo) -> config.full3dDistance).add()
+            .append(new KeyedCodec<>("UpdateIntervalMs", Codec.LONG),
+                    (config, value, extraInfo) -> config.updateIntervalMs = value,
+                    (config, extraInfo) -> config.updateIntervalMs).add()
             .build();
 
     private int webSocketPort = 8443;
     private boolean useSSL = true;
     private String sslKeystorePath = "example.keystore";
     private String sslKeystorePassword = "changeit";
+    private String joinMessage = "This server has Voice Chat! Connect at: https://your-server.com:{port}";
     private double maxDistance = 75.0;
     private DistanceFormula distanceFormula = DistanceFormula.EXPONENTIAL;
     private VoiceDimension voiceDimension = VoiceDimension.THREE_D;
@@ -59,6 +66,7 @@ public class VoiceChatConfig {
     private double serverCutoffMultiplier = 1.1;
     private double blend2dDistance = 20.0;
     private double full3dDistance = 50.0;
+    private long updateIntervalMs = 50;
 
     public VoiceChatConfig() {}
 

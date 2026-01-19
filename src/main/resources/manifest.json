@@ -10,9 +10,7 @@
   ],
   "Website": "${website}",
   "ServerVersion": "${server_version}",
-  "Dependencies": {
-    "Hytale:EntityModule": "*"
-  },
+  "Dependencies": {},
   "OptionalDependencies": {},
   "DisabledByDefault": false,
   "Main": "${entry_point}",
