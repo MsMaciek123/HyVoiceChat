@@ -17,12 +17,17 @@ The mod runs an embedded web server. By default it uses HTTPS on port 8443.
 
 ### Why SSL?
 
-Browsers require HTTPS to access the microphone. The mod includes a self-signed certificate that works out of the box - you'll just need to accept the browser warning ("Your connection is not private" / "Accept the risk").
+Browsers require HTTPS to access the microphone. The mod includes a self-signed certificate that works out of the box — you will need to accept the browser warning (“Your connection is not private” / “Accept the risk”).
 
-For production use, you can:
+⚠️ Important notice:
+Accepting an invalid certificate is insecure. It allows man-in-the-middle (MITM) attacks, meaning an attacker on the network could intercept traffic and listen to microphone audio. \
+This setup is acceptable only for testing or private environments on trusted networks. \
+For production use, you should use:
 - Put a reverse proxy (nginx, caddy) in front with a real certificate
 - Use Cloudflare tunnel
 - Generate your own keystore with a proper certificate
+
+By accepting the invalid certificate, you acknowledge that your microphone audio may be intercepted.
 
 ## Configuration
 
