@@ -51,6 +51,9 @@ public class VoiceChatConfig {
             .append(new KeyedCodec<>("UpdateIntervalMs", Codec.LONG),
                     (config, value, extraInfo) -> config.updateIntervalMs = value,
                     (config, extraInfo) -> config.updateIntervalMs).add()
+            .append(new KeyedCodec<>("OverrideNameplates", Codec.BOOLEAN),
+                    (config, value, extraInfo) -> config.overrideNameplates = value,
+                    (config, extraInfo) -> config.overrideNameplates).add()
             .build();
 
     private int webSocketPort = 8443;
@@ -67,6 +70,7 @@ public class VoiceChatConfig {
     private double blend2dDistance = 20.0;
     private double full3dDistance = 50.0;
     private long updateIntervalMs = 50;
+    private boolean overrideNameplates = true;
 
     public VoiceChatConfig() {}
 

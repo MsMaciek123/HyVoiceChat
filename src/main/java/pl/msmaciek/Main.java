@@ -12,6 +12,7 @@ import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import pl.msmaciek.commands.VoiceChatReloadCommand;
 import pl.msmaciek.commands.VoiceChatVerifyCommand;
 import pl.msmaciek.config.VoiceChatConfig;
+import pl.msmaciek.nameplate.NameplateManager;
 import pl.msmaciek.player.PlayerTracker;
 import pl.msmaciek.server.WebServer;
 import pl.msmaciek.session.SessionManager;
@@ -44,6 +45,7 @@ public class Main extends JavaPlugin {
         webServer.startAsync();
 
         SessionManager.getInstance().startScheduler(CONFIG.get().getUpdateIntervalMs());
+        NameplateManager.getInstance().start();
 
         this.getLogger().at(Level.INFO).log("HyVoiceChat mod initialized!");
         this.getLogger().at(Level.INFO).log("Voice chat available at http://localhost:" + CONFIG.get().getWebSocketPort());
@@ -75,6 +77,7 @@ public class Main extends JavaPlugin {
     protected void shutdown() {
         super.shutdown();
         SessionManager.getInstance().stopScheduler();
+        NameplateManager.getInstance().stop();
         if (webServer != null) {
             webServer.stop();
         }

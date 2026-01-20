@@ -7,6 +7,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import pl.msmaciek.Main;
 import pl.msmaciek.config.VoiceChatConfig;
+import pl.msmaciek.nameplate.NameplateManager;
 import pl.msmaciek.player.PlayerTracker;
 import pl.msmaciek.structs.Position;
 
@@ -158,6 +159,8 @@ public class SessionManager {
         UserSession session = uuidToSession.get(playerUuid);
         if (session != null && session.getSession().isOpen()) {
             try {
+                NameplateManager.getInstance().markDisconnected(playerUuid);
+
                 JsonObject msg = new JsonObject();
                 msg.addProperty("type", "kicked");
                 msg.addProperty("reason", "Player left the game server.");

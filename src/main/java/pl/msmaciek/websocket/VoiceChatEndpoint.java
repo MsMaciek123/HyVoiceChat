@@ -8,6 +8,7 @@ import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import pl.msmaciek.Main;
 import pl.msmaciek.auth.VerificationManager;
 import pl.msmaciek.config.VoiceChatConfig;
+import pl.msmaciek.nameplate.NameplateManager;
 import pl.msmaciek.player.PlayerTracker;
 import pl.msmaciek.session.SessionManager;
 import pl.msmaciek.session.UserSession;
@@ -107,6 +108,8 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
     public void onWebSocketBinary(byte[] payload, int offset, int len) {
         if (userSession == null || userSession.getName() == null || userSession.getPlayerUuid() == null) return;
 
+        NameplateManager.getInstance().markTalking(userSession.getPlayerUuid());
+
         VoiceChatConfig config = Main.CONFIG.get();
         boolean use2D = config.getVoiceDimension() == VoiceChatConfig.VoiceDimension.TWO_D;
         // Server cutoff is maxDistance * multiplier to allow client-side attenuation to work
@@ -141,6 +144,11 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
     @Override
     public void onWebSocketClose(int statusCode, String reason) {
         super.onWebSocketClose(statusCode, reason);
+
+        // Mark player as disconnected from voice chat
+        if (userSession != null && userSession.getPlayerUuid() != null) {
+            NameplateManager.getInstance().markDisconnected(userSession.getPlayerUuid());
+        }
 
         // Release the username claim
         if (userSession != null && userSession.getName() != null) {
@@ -222,6 +230,9 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
 
         userSession.setName(playerName);
         sessions.linkToPlayer(userSession, playerUuid);
+
+        // Mark player as connected to voice chat
+        NameplateManager.getInstance().markConnected(playerUuid);
 
         // Send join success - snapshots will handle player list
         JsonObject joinMsg = new JsonObject();
