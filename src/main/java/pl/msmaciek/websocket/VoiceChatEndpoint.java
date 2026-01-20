@@ -14,7 +14,6 @@ import pl.msmaciek.session.SessionManager;
 import pl.msmaciek.session.UserSession;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 
@@ -24,18 +23,18 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
 
     private int odapId;
     private UserSession userSession;
-    private String clientIp;
+    private String sessionId;
     private String verificationCode;
 
     @Override
     public void onWebSocketConnect(Session session) {
         super.onWebSocketConnect(session);
 
-        // Extract client IP address
-        clientIp = extractClientIp(session);
+        // Generate unique session ID for this WebSocket connection
+        sessionId = UUID.randomUUID().toString();
 
         odapId = sessions.nextId();
-        userSession = new UserSession(odapId, session, clientIp);
+        userSession = new UserSession(odapId, session, sessionId);
         sessions.add(userSession);
 
         // Send session ID and config
@@ -47,23 +46,11 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
         // Send server config for client-side audio processing
         userSession.sendConfig(Main.CONFIG.get());
 
-        // Generate or get verification code for this IP
-        verificationCode = VerificationManager.getInstance().getOrCreateCode(clientIp);
+        // Generate verification code for this session
+        verificationCode = VerificationManager.getInstance().getOrCreateCode(sessionId);
         sendVerificationCode(session);
 
-        System.out.println("WebSocket connected: " + odapId + " from IP: " + clientIp + ", code: " + verificationCode);
-    }
-
-    private String extractClientIp(Session session) {
-        try {
-            InetSocketAddress remoteAddr = (InetSocketAddress) session.getRemoteAddress();
-            if (remoteAddr != null) {
-                return remoteAddr.getAddress().getHostAddress();
-            }
-        } catch (Exception e) {
-            System.err.println("Could not extract client IP: " + e.getMessage());
-        }
-        return "unknown";
+        System.out.println("WebSocket connected: " + odapId + " (session: " + sessionId + "), code: " + verificationCode);
     }
 
     private void sendVerificationCode(Session session) {
@@ -156,7 +143,7 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
 
         // Invalidate verification code if not consumed
         if (verificationCode != null && userSession.getName() == null) {
-            VerificationManager.getInstance().invalidateForIp(clientIp);
+            VerificationManager.getInstance().invalidateForSession(sessionId);
         }
 
         sessions.remove(odapId);

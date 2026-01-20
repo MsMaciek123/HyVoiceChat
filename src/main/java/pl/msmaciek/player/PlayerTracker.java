@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Tracks online players, their positions, IPs, and voice chat session assignments.
+ * Tracks online players, their positions, and voice chat session assignments.
  */
 public class PlayerTracker {
     private static final PlayerTracker INSTANCE = new PlayerTracker();
@@ -14,17 +14,12 @@ public class PlayerTracker {
     // UUID -> Username mapping for online players
     private final Map<UUID, String> onlinePlayers = new ConcurrentHashMap<>();
 
-    // IP -> Set of UUIDs (players connecting from that IP)
-    private final Map<String, Set<UUID>> ipToPlayers = new ConcurrentHashMap<>();
-
     // UUID -> Current position
     private final Map<UUID, Position> playerPositions = new ConcurrentHashMap<>();
 
     // Username -> Session assignment (to prevent duplicate claims in NO_AUTH mode)
     private final Set<String> assignedUsernames = ConcurrentHashMap.newKeySet();
 
-    // UUID -> IP address
-    private final Map<UUID, String> playerIps = new ConcurrentHashMap<>();
 
     private PlayerTracker() {}
 
@@ -35,11 +30,8 @@ public class PlayerTracker {
     /**
      * Called when a player joins the Hytale server.
      */
-    public void playerJoined(UUID uuid, String username, String ipAddress) {
+    public void playerJoined(UUID uuid, String username) {
         onlinePlayers.put(uuid, username);
-        playerIps.put(uuid, ipAddress);
-
-        ipToPlayers.computeIfAbsent(ipAddress, k -> ConcurrentHashMap.newKeySet()).add(uuid);
 
         // Initialize position at origin
         playerPositions.put(uuid, new Position(0, 0, 0));
@@ -50,21 +42,10 @@ public class PlayerTracker {
      */
     public void playerLeft(UUID uuid) {
         String username = onlinePlayers.remove(uuid);
-        String ip = playerIps.remove(uuid);
         playerPositions.remove(uuid);
 
         if (username != null) {
             assignedUsernames.remove(username.toLowerCase());
-        }
-
-        if (ip != null) {
-            Set<UUID> playersAtIp = ipToPlayers.get(ip);
-            if (playersAtIp != null) {
-                playersAtIp.remove(uuid);
-                if (playersAtIp.isEmpty()) {
-                    ipToPlayers.remove(ip);
-                }
-            }
         }
     }
 

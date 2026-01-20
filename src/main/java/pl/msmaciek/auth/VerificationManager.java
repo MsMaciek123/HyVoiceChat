@@ -11,8 +11,8 @@ public class VerificationManager {
     private static final int CODE_LENGTH = 6;
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private final Map<String, String> ipToCode = new ConcurrentHashMap<>();
-    private final Map<String, String> codeToIp = new ConcurrentHashMap<>();
+    private final Map<String, String> sessionToCode = new ConcurrentHashMap<>();
+    private final Map<String, String> codeToSession = new ConcurrentHashMap<>();
     private final Map<String, UUID> verifiedCodes = new ConcurrentHashMap<>();
     private final Map<String, String> verifiedUsernames = new ConcurrentHashMap<>();
 
@@ -24,20 +24,20 @@ public class VerificationManager {
         return INSTANCE;
     }
 
-    public String getOrCreateCode(String ipAddress) {
+    public String getOrCreateCode(String sessionId) {
         synchronized (lock) {
-            String existingCode = ipToCode.get(ipAddress);
+            String existingCode = sessionToCode.get(sessionId);
             if (existingCode != null) {
                 return existingCode;
             }
 
             String code = generateCode();
-            while (codeToIp.containsKey(code)) {
+            while (codeToSession.containsKey(code)) {
                 code = generateCode();
             }
 
-            ipToCode.put(ipAddress, code);
-            codeToIp.put(code, ipAddress);
+            sessionToCode.put(sessionId, code);
+            codeToSession.put(code, sessionId);
             return code;
         }
     }
@@ -46,8 +46,8 @@ public class VerificationManager {
         synchronized (lock) {
             code = code.toUpperCase();
 
-            String ip = codeToIp.get(code);
-            if (ip == null) {
+            String session = codeToSession.get(code);
+            if (session == null) {
                 return false;
             }
 
@@ -65,8 +65,8 @@ public class VerificationManager {
         return verifiedUsernames.get(code.toUpperCase());
     }
 
-    public String getCodeForIp(String ipAddress) {
-        return ipToCode.get(ipAddress);
+    public String getCodeForSession(String sessionId) {
+        return sessionToCode.get(sessionId);
     }
 
     public boolean isVerified(String code) {
@@ -76,20 +76,20 @@ public class VerificationManager {
     public void consumeCode(String code) {
         synchronized (lock) {
             code = code.toUpperCase();
-            String ip = codeToIp.remove(code);
-            if (ip != null) {
-                ipToCode.remove(ip);
+            String session = codeToSession.remove(code);
+            if (session != null) {
+                sessionToCode.remove(session);
             }
             verifiedCodes.remove(code);
             verifiedUsernames.remove(code);
         }
     }
 
-    public void invalidateForIp(String ipAddress) {
+    public void invalidateForSession(String sessionId) {
         synchronized (lock) {
-            String code = ipToCode.remove(ipAddress);
+            String code = sessionToCode.remove(sessionId);
             if (code != null) {
-                codeToIp.remove(code);
+                codeToSession.remove(code);
                 verifiedCodes.remove(code);
                 verifiedUsernames.remove(code);
             }

@@ -60,8 +60,7 @@ public class Main extends JavaPlugin {
 
         PlayerTracker.getInstance().playerJoined(
             playerRef.getUuid(),
-            player.getDisplayName(),
-            "unknown" // IP not available from Hytale API yet
+            player.getDisplayName()
         );
 
         String joinMessage = CONFIG.get().getMessages().getJoinMessage();

@@ -17,7 +17,7 @@ import java.util.UUID;
 public class UserSession {
     private final int odapId;
     private final Session session;
-    private final String clientIp;
+    private final String sessionId;
 
     @Setter private String name;
     @Setter private UUID playerUuid;
