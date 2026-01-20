@@ -3,17 +3,26 @@ package pl.msmaciek.session;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import pl.msmaciek.Main;
 import pl.msmaciek.config.VoiceChatConfig;
 import pl.msmaciek.nameplate.NameplateManager;
 import pl.msmaciek.player.PlayerTracker;
 import pl.msmaciek.structs.Position;
+import pl.msmaciek.ui.NearbyPlayersUI;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SessionManager {
@@ -37,8 +46,13 @@ public class SessionManager {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleAtFixedRate(() -> {
             if (!closed) {
-                updateAllPlayerPositions();
-                broadcastPlayerSnapshot();
+                // Avoids the exception from being silenced
+                try {
+                    updateAllPlayerPositions();
+                    broadcastPlayerSnapshot();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         }, 0L, updateIntervalMs, TimeUnit.MILLISECONDS);
     }
@@ -179,8 +193,7 @@ public class SessionManager {
      */
     public void broadcastPlayerSnapshot() {
         VoiceChatConfig config = Main.CONFIG.get();
-        double maxDistance = config.getMaxDistance() * config.getServerCutoffMultiplier();
-        boolean use2D = config.getVoiceDimension() == VoiceChatConfig.VoiceDimension.TWO_D;
+        double maxDistance = config.getAudio().getMaxDistance() * config.getAudio().getServerCutoffMultiplier();
 
         for (UserSession targetSession : sessions.values()) {
             if (!targetSession.getSession().isOpen()) continue;
@@ -192,8 +205,12 @@ public class SessionManager {
             JsonObject msg = new JsonObject();
             msg.addProperty("type", "players_snapshot");
 
+            ArrayList<String> nearbyTalkingPlayers = new ArrayList<>();
+
             // Add self info
             msg.add("self", packPositionPacket(targetSession, targetPos));
+            if(NameplateManager.getInstance().isTalking(targetSession.getPlayerUuid()))
+                nearbyTalkingPlayers.add(targetSession.getName());
 
             // Add nearby players
             JsonArray nearbyPlayers = new JsonArray();
@@ -214,8 +231,13 @@ public class SessionManager {
 
                 // Add to nearby list
                 nearbyPlayers.add(packPositionPacket(otherSession, otherPos));
+
+                if(NameplateManager.getInstance().isTalking(otherSession.getPlayerUuid()))
+                    nearbyTalkingPlayers.add(otherSession.getName());
             }
             msg.add("players", nearbyPlayers);
+
+            scheduleUIUpdate(targetSession, nearbyTalkingPlayers);
 
             try {
                 targetSession.getSession().getRemote().sendString(gson.toJson(msg));
@@ -223,6 +245,25 @@ public class SessionManager {
                 System.err.println("Snapshot broadcast error: " + e.getMessage());
             }
         }
+    }
+
+    private void scheduleUIUpdate(UserSession session, ArrayList<String> nearbyTalkingPlayers) {
+        if(!Main.CONFIG.get().getGeneral().isEnableUI()) return;
+        PlayerRef playerRef = Universe.get().getPlayer(session.getPlayerUuid());
+        if(playerRef == null) return;
+        Ref<EntityStore> entityRef = playerRef.getReference();
+        if(entityRef == null) return;
+        if(playerRef.getWorldUuid() == null) return;
+        World w = Universe.get().getWorld(playerRef.getWorldUuid());
+        if(w == null) return;
+        w.execute(() -> {
+            Store<EntityStore> store = entityRef.getStore();
+            Player player = store.getComponent(entityRef, Player.getComponentType());
+            if (player == null) return;
+            var customHud = player.getHudManager().getCustomHud();
+            if(!(customHud instanceof NearbyPlayersUI nearbyPlayersUI)) return;
+            nearbyPlayersUI.updateNearbyPlayers(nearbyTalkingPlayers);
+        });
     }
 
     private JsonObject packPositionPacket(UserSession targetSession, Position targetPos) {

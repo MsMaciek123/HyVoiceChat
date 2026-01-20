@@ -85,13 +85,13 @@ public class UserSession {
     public void sendConfig(VoiceChatConfig config) {
         JsonObject msg = new JsonObject();
         msg.addProperty("type", "config");
-        msg.addProperty("maxDistance", config.getMaxDistance());
-        msg.addProperty("distanceFormula", config.getDistanceFormula().name());
-        msg.addProperty("voiceDimension", config.getVoiceDimension().toString());
-        msg.addProperty("rolloffFactor", config.getRolloffFactor());
-        msg.addProperty("refDistance", config.getRefDistance());
-        msg.addProperty("blend2dDistance", config.getBlend2dDistance());
-        msg.addProperty("full3dDistance", config.getFull3dDistance());
+        msg.addProperty("maxDistance", config.getAudio().getMaxDistance());
+        msg.addProperty("distanceFormula", config.getAudio().getDistanceFormula().name());
+        msg.addProperty("voiceDimension", config.getAudio().getVoiceDimension().toString());
+        msg.addProperty("rolloffFactor", config.getAudio().getRolloffFactor());
+        msg.addProperty("refDistance", config.getAudio().getRefDistance());
+        msg.addProperty("blend2dDistance", config.getAudio().getBlend2dDistance());
+        msg.addProperty("full3dDistance", config.getAudio().getFull3dDistance());
 
         try {
             session.getRemote().sendString(msg.toString());

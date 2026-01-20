@@ -1,0 +1,10 @@
+$C = "../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Anchor: (Width: 250, Height: 400, Right: 16, Top: 16);
+  Label #Players {
+    Style: (TextColor: #ffffff);
+    Text: "";
+  }
+}

@@ -33,20 +33,45 @@ By accepting the invalid certificate, you acknowledge that your microphone audio
 
 Config file: `HyVoiceChat.json`
 
-| Setting | Default            | Description |
-|---------|--------------------|-------------|
-| `WebSocketPort` | `8443`             | Port for the web server |
-| `UseSSL` | `true`             | Enable HTTPS (required for microphone access) |
-| `SSLKeystorePath` | `example.keystore` | Path to Java keystore file |
-| `SSLKeystorePassword` | `changeit`         | Keystore password |
-| `MaxDistance` | `75.0`             | Maximum distance (blocks) to hear other players |
-| `DistanceFormula` | `EXPONENTIAL`      | How volume drops with distance: `LINEAR`, `EXPONENTIAL`, `INVERSE_SQUARE` |
-| `VoiceDimension` | `3D`               | `3D` for spatial audio, `2D` for flat (no left/right) |
-| `RolloffFactor` | `1.5`              | How quickly volume decreases with distance |
-| `RefDistance` | `10.0`             | Distance at which volume is 100% |
-| `ServerCutoffMultiplier` | `1.1`              | Server stops sending audio beyond MaxDistance * this value |
-| `Blend2dDistance` | `20.0`             | Distance below which audio is more centered |
-| `Full3dDistance` | `50.0`             | Distance at which full 3D positioning kicks in |
+The configuration is organized into categories:
+
+### Server Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `Server.WebSocketPort` | `8443` | Port for the web server |
+| `Server.UseSSL` | `true` | Enable HTTPS (required for microphone access) |
+| `Server.SSLKeystorePath` | `example.keystore` | Path to Java keystore file |
+| `Server.SSLKeystorePassword` | `changeit` | Keystore password |
+
+### Messages Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `Messages.JoinMessage` | `"This server has Voice Chat!..."` | Message shown to players on join |
+
+### Audio Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `Audio.MaxDistance` | `75.0` | Maximum distance (blocks) to hear other players |
+| `Audio.DistanceFormula` | `EXPONENTIAL` | How volume drops with distance: `LINEAR`, `EXPONENTIAL`, `INVERSE_SQUARE` |
+| `Audio.VoiceDimension` | `THREE_D` | `THREE_D` for spatial audio, `TWO_D` for flat (no left/right) |
+| `Audio.RolloffFactor` | `1.5` | How quickly volume decreases with distance |
+| `Audio.RefDistance` | `10.0` | Distance at which volume is 100% |
+| `Audio.ServerCutoffMultiplier` | `1.1` | Server stops sending audio beyond MaxDistance × this value |
+| `Audio.Blend2dDistance` | `20.0` | Distance below which audio is more centered |
+| `Audio.Full3dDistance` | `50.0` | Distance at which full 3D positioning kicks in |
+
+### General Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `General.UpdateIntervalMs` | `50` | How often player positions are updated (milliseconds) |
+| `General.OverrideNameplates` | `true` | Show speaking indicator on player nameplates |
+| `General.RequirePermissionToConnect` | `false` | Require permission to use voice chat |
+| `General.EnableUI` | `true` | Show in-game UI for nearby speaking players |
+
 
 ## Commands
 

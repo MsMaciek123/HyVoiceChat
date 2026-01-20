@@ -111,9 +111,8 @@ public class VoiceChatEndpoint extends WebSocketAdapter {
         NameplateManager.getInstance().markTalking(userSession.getPlayerUuid());
 
         VoiceChatConfig config = Main.CONFIG.get();
-        boolean use2D = config.getVoiceDimension() == VoiceChatConfig.VoiceDimension.TWO_D;
         // Server cutoff is maxDistance * multiplier to allow client-side attenuation to work
-        double serverCutoff = config.getMaxDistance() * config.getServerCutoffMultiplier();
+        double serverCutoff = config.getAudio().getMaxDistance() * config.getAudio().getServerCutoffMultiplier();
 
         ByteBuffer buffer = ByteBuffer.allocate(4 + len);
         buffer.putInt(odapId);

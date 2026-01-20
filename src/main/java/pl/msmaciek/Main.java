@@ -16,6 +16,7 @@ import pl.msmaciek.nameplate.NameplateManager;
 import pl.msmaciek.player.PlayerTracker;
 import pl.msmaciek.server.WebServer;
 import pl.msmaciek.session.SessionManager;
+import pl.msmaciek.ui.NearbyPlayersUI;
 
 import java.awt.*;
 import java.util.logging.Level;
@@ -44,11 +45,11 @@ public class Main extends JavaPlugin {
         webServer = new WebServer(this.getLogger(), CONFIG.get());
         webServer.startAsync();
 
-        SessionManager.getInstance().startScheduler(CONFIG.get().getUpdateIntervalMs());
+        SessionManager.getInstance().startScheduler(CONFIG.get().getGeneral().getUpdateIntervalMs());
         NameplateManager.getInstance().start();
 
         this.getLogger().at(Level.INFO).log("HyVoiceChat mod initialized!");
-        this.getLogger().at(Level.INFO).log("Voice chat available at http://localhost:" + CONFIG.get().getWebSocketPort());
+        this.getLogger().at(Level.INFO).log("Voice chat available at http://localhost:" + CONFIG.get().getServer().getWebSocketPort());
     }
 
     private void onPlayerJoin(AddPlayerToWorldEvent event) {
@@ -63,11 +64,14 @@ public class Main extends JavaPlugin {
             "unknown" // IP not available from Hytale API yet
         );
 
-        String joinMessage = CONFIG.get().getJoinMessage();
+        String joinMessage = CONFIG.get().getMessages().getJoinMessage();
         if (joinMessage != null && !joinMessage.isEmpty()) {
-            String formattedMessage = joinMessage.replace("{port}", String.valueOf(CONFIG.get().getWebSocketPort()));
+            String formattedMessage = joinMessage.replace("{port}", String.valueOf(CONFIG.get().getServer().getWebSocketPort()));
             player.sendMessage(Message.raw("[VoiceChat] " + formattedMessage).color(Color.CYAN));
         }
+
+        if (CONFIG.get().getGeneral().isEnableUI())
+            NearbyPlayersUI.apply(player, playerRef);
 
         this.getLogger().at(Level.INFO).log("Player joined: " + player.getDisplayName());
     }

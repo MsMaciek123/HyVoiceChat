@@ -51,13 +51,13 @@ public class WebServer {
             server = new Server();
 
             ServerConnector connector = createConnector();
-            connector.setPort(config.getWebSocketPort());
+            connector.setPort(config.getServer().getWebSocketPort());
             server.addConnector(connector);
 
             setupHandlers();
 
             String protocol = sslEnabled ? "https" : "http";
-            log(Level.INFO, "Starting Voice Chat WebSocket server on port " + config.getWebSocketPort() + " (" + protocol + ")");
+            log(Level.INFO, "Starting Voice Chat WebSocket server on port " + config.getServer().getWebSocketPort() + " (" + protocol + ")");
 
             server.start();
             server.join();
@@ -81,7 +81,7 @@ public class WebServer {
     }
 
     private ServerConnector createConnector() {
-        if (!config.isUseSSL()) {
+        if (!config.getServer().isUseSSL()) {
             sslEnabled = false;
             return new ServerConnector(server);
         }
@@ -122,7 +122,7 @@ public class WebServer {
     }
 
     private File resolveKeystoreFile() {
-        String keystorePath = config.getSslKeystorePath();
+        String keystorePath = config.getServer().getSslKeystorePath();
         File keystoreFile = new File(keystorePath);
 
         if (keystoreFile.isAbsolute() && keystoreFile.exists()) {
@@ -147,7 +147,7 @@ public class WebServer {
             return file.getAbsolutePath();
         }
 
-        URL resourceUrl = getClass().getClassLoader().getResource(config.getSslKeystorePath());
+        URL resourceUrl = getClass().getClassLoader().getResource(config.getServer().getSslKeystorePath());
         if (resourceUrl != null) {
             return resourceUrl.toExternalForm();
         }
@@ -158,8 +158,8 @@ public class WebServer {
     private SslContextFactory.Server createSSLContextFactory(String keystorePath) {
         SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setKeyStorePath(keystorePath);
-        sslContextFactory.setKeyStorePassword(config.getSslKeystorePassword());
-        sslContextFactory.setKeyManagerPassword(config.getSslKeystorePassword());
+        sslContextFactory.setKeyStorePassword(config.getServer().getSslKeystorePassword());
+        sslContextFactory.setKeyManagerPassword(config.getServer().getSslKeystorePassword());
         sslContextFactory.setSniRequired(false);
         return sslContextFactory;
     }
@@ -167,7 +167,7 @@ public class WebServer {
     private HttpConfiguration createHttpsConfig() {
         HttpConfiguration httpsConfig = new HttpConfiguration();
         httpsConfig.setSecureScheme("https");
-        httpsConfig.setSecurePort(config.getWebSocketPort());
+        httpsConfig.setSecurePort(config.getServer().getWebSocketPort());
 
         SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
         secureRequestCustomizer.setSniHostCheck(false);

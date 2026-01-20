@@ -85,12 +85,11 @@ public class NameplateManager {
      * Update all player nameplates based on their voice chat status
      */
     private void updateAllNameplates() {
-        if (!Main.CONFIG.get().isOverrideNameplates()) return;
+        if (!Main.CONFIG.get().getGeneral().isOverrideNameplates()) return;
 
         Universe universe = Universe.get();
         if (universe == null) return;
 
-        long now = System.currentTimeMillis();
 
         for (PlayerRef playerRef : universe.getPlayers()) {
             UUID playerUuid = playerRef.getUuid();
@@ -99,23 +98,19 @@ public class NameplateManager {
             if (worldUuid == null) continue;
             World world = universe.getWorld(worldUuid);
             if (world == null) continue;
-            world.execute(() -> updateNameplate(playerRef, playerUuid, now));
+            world.execute(() -> updateNameplate(playerRef, playerUuid));
         }
     }
 
     /**
      * Update a single player's nameplate
      */
-    private void updateNameplate(PlayerRef playerRef, UUID playerUuid, long currentTime) {
+    private void updateNameplate(PlayerRef playerRef, UUID playerUuid) {
         Nameplate nameplate = playerRef.getComponent(Nameplate.getComponentType());
         if (nameplate == null) return;
 
-        // Check if player is currently talking
-        Long lastTalk = lastTalkTime.get(playerUuid);
-        boolean isTalking = lastTalk != null && (currentTime - lastTalk) < TALKING_TIMEOUT_MS;
-
-        // Check if player is connected to voice chat
-        boolean isConnected = connectedPlayers.getOrDefault(playerUuid, false);
+        boolean isTalking = isTalking(playerUuid);
+        boolean isConnected = isConnected(playerUuid);
 
         String text = playerRef.getUsername();
         if (isTalking) {
@@ -125,5 +120,14 @@ public class NameplateManager {
         }
 
         nameplate.setText(text);
+    }
+
+    public boolean isConnected(UUID playerUuid) {
+        return connectedPlayers.getOrDefault(playerUuid, false);
+    }
+
+    public boolean isTalking(UUID playerUuid) {
+        Long lastTalk = lastTalkTime.get(playerUuid);
+        return lastTalk != null && (System.currentTimeMillis() - lastTalk) < TALKING_TIMEOUT_MS;
     }
 }

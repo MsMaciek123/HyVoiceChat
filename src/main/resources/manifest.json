@@ -14,5 +14,5 @@
   "OptionalDependencies": {},
   "DisabledByDefault": false,
   "Main": "${entry_point}",
-  "IncludesAssetPack": false
+  "IncludesAssetPack": true
 }

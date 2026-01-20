@@ -67,6 +67,6 @@ public class VoiceChatVerifyCommand extends AbstractPlayerCommand {
 
     @Override
     protected boolean canGeneratePermission() {
-        return Main.CONFIG.get().isRequirePermissionToConnect();
+        return Main.CONFIG.get().getGeneral().isRequirePermissionToConnect();
     }
 }
