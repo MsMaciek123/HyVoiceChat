@@ -54,6 +54,9 @@ public class VoiceChatConfig {
             .append(new KeyedCodec<>("OverrideNameplates", Codec.BOOLEAN),
                     (config, value, extraInfo) -> config.overrideNameplates = value,
                     (config, extraInfo) -> config.overrideNameplates).add()
+            .append(new KeyedCodec<>("RequirePermissionToConnect", Codec.BOOLEAN),
+                    (config, value, extraInfo) -> config.requirePermissionToConnect = value,
+                    (config, extraInfo) -> config.requirePermissionToConnect).add()
             .build();
 
     private int webSocketPort = 8443;
@@ -71,6 +74,7 @@ public class VoiceChatConfig {
     private double full3dDistance = 50.0;
     private long updateIntervalMs = 50;
     private boolean overrideNameplates = true;
+    private boolean requirePermissionToConnect = false;
 
     public VoiceChatConfig() {}
 

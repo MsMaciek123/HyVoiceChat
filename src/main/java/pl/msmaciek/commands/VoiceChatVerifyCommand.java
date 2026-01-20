@@ -12,6 +12,7 @@ import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import pl.msmaciek.Main;
 import pl.msmaciek.auth.VerificationManager;
 
 import javax.annotation.Nonnull;
@@ -62,5 +63,10 @@ public class VoiceChatVerifyCommand extends AbstractPlayerCommand {
         } else {
             player.sendMessage(INVALID_CODE);
         }
+    }
+
+    @Override
+    protected boolean canGeneratePermission() {
+        return Main.CONFIG.get().isRequirePermissionToConnect();
     }
 }
