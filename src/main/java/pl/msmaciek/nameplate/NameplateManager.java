@@ -37,6 +37,16 @@ public class NameplateManager {
         return INSTANCE;
     }
 
+    public void removeOldNameplates(PlayerRef playerRef) {
+        Nameplate nameplate = playerRef.getComponent(Nameplate.getComponentType());
+        if (nameplate == null) return;
+
+        String text = playerRef.getUsername();
+        text = text.replace(TALKING_SUFFIX, "");
+        text = text.replace(NOT_CONNECTED_SUFFIX, "");
+        nameplate.setText(text);
+    }
+
     /**
      * Start the nameplate update scheduler
      */
@@ -89,7 +99,6 @@ public class NameplateManager {
 
         Universe universe = Universe.get();
         if (universe == null) return;
-
 
         for (PlayerRef playerRef : universe.getPlayers()) {
             UUID playerUuid = playerRef.getUuid();

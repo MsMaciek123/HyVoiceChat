@@ -28,10 +28,16 @@ public class WebServer {
     private final VoiceChatConfig config;
     private Server server;
     private boolean sslEnabled;
+    private final boolean forceSSLDisabled;
 
     public WebServer(HytaleLogger logger, VoiceChatConfig config) {
+        this(logger, config, false);
+    }
+
+    public WebServer(HytaleLogger logger, VoiceChatConfig config, boolean forceSSLDisabled) {
         this.logger = logger;
         this.config = config;
+        this.forceSSLDisabled = forceSSLDisabled;
     }
 
     /**
@@ -81,7 +87,7 @@ public class WebServer {
     }
 
     private ServerConnector createConnector() {
-        if (!config.getServer().isUseSSL()) {
+        if (forceSSLDisabled || !config.getServer().isUseSSL()) {
             sslEnabled = false;
             return new ServerConnector(server);
         }

@@ -26,6 +26,9 @@ dependencies {
     implementation 'org.eclipse.jetty.websocket:websocket-jetty-server:11.0.18'
     implementation 'org.eclipse.jetty.websocket:websocket-jetty-api:11.0.18'
 
+    // JSch for reverse SSH connections to setup tunnels without hassle
+    implementation "com.jcraft:jsch:0.1.55"
+
     // JSON processing
     implementation 'com.google.code.gson:gson:2.10.1'
 
@@ -63,6 +66,8 @@ idea.project.settings.runConfigurations {
 }
 
 shadowJar {
-    minimize()
+    minimize {
+        exclude(dependency('com.jcraft:jsch:.*:.*'))
+    }
     archiveFileName = "HyVoiceChat-${project.version}.jar"
 }

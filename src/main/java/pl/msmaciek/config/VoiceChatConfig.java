@@ -42,7 +42,7 @@ public class VoiceChatConfig {
                         (config, extraInfo) -> config.joinMessage).add()
                 .build();
 
-        private String joinMessage = "This server has Voice Chat! Connect at: https://your-server.com:{port}";
+        private String joinMessage = "This server has Voice Chat! Connect at: {tunnelurl}";
 
         public MessagesConfig() {}
     }
@@ -113,6 +113,19 @@ public class VoiceChatConfig {
         public GeneralConfig() {}
     }
 
+    @Getter
+    public static class TunnelConfig {
+        public static final BuilderCodec<TunnelConfig> CODEC = BuilderCodec.builder(TunnelConfig.class, TunnelConfig::new)
+                .append(new KeyedCodec<>("UseTunnel", Codec.BOOLEAN),
+                        (config, value, extraInfo) -> config.useTunnel = value,
+                        (config, extraInfo) -> config.useTunnel).add()
+                .build();
+
+        private boolean useTunnel = true;
+
+        public TunnelConfig() {}
+    }
+
     public static final BuilderCodec<VoiceChatConfig> CODEC = BuilderCodec.builder(VoiceChatConfig.class, VoiceChatConfig::new)
             .append(new KeyedCodec<>("Server", ServerConfig.CODEC),
                     (config, value, extraInfo) -> config.server = value,
@@ -126,12 +139,16 @@ public class VoiceChatConfig {
             .append(new KeyedCodec<>("General", GeneralConfig.CODEC),
                     (config, value, extraInfo) -> config.general = value,
                     (config, extraInfo) -> config.general).add()
+            .append(new KeyedCodec<>("Tunnel", TunnelConfig.CODEC),
+                    (config, value, extraInfo) -> config.tunnel = value,
+                    (config, extraInfo) -> config.tunnel).add()
             .build();
 
     private ServerConfig server = new ServerConfig();
     private MessagesConfig messages = new MessagesConfig();
     private AudioConfig audio = new AudioConfig();
     private GeneralConfig general = new GeneralConfig();
+    private TunnelConfig tunnel = new TunnelConfig();
 
     public VoiceChatConfig() {}
 
