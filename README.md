@@ -13,11 +13,14 @@ Note: This mod requires additional port for website/websocket
 
 ## Setup
 
-The mod runs an embedded web server. By default it uses HTTPS on port 8443.
+The mod runs an embedded web server. By default it uses HTTPS on port 8443. \
+You can either use serveo tunnel (built-in) and just join your server, click link in chat and talk. \
+The second way is you can self-host it and disable tunnel in config. That way you get less ping and more direct connection. \
+However, with self-hosting you most likely want to have some kind of domain to avoid SSL warnings.
 
-### Why SSL?
-
-Browsers require HTTPS to access the microphone. The mod includes a self-signed certificate that works out of the box — you will need to accept the browser warning (“Your connection is not private” / “Accept the risk”).
+### Self-hosting without domain
+Browsers require HTTPS to access the microphone. The mod includes a self-signed certificate that works out of the box — you will need to accept the browser warning (“Your connection is not private” / “Accept the risk”). \
+This is because SSL certificates are mostly issued for domains, not IPs.
 
 ⚠️ Important notice:
 Accepting an invalid certificate is insecure. It allows man-in-the-middle (MITM) attacks, meaning an attacker on the network could intercept traffic and listen to microphone audio. \
@@ -72,6 +75,11 @@ The configuration is organized into categories:
 | `General.RequirePermissionToConnect` | `false` | Require permission to use voice chat |
 | `General.EnableUI` | `true` | Show in-game UI for nearby speaking players |
 
+### Tunnel Settings
+
+| Setting                              | Default | Description                  |
+|--------------------------------------|---------|------------------------------|
+| `Tunnel.UseTunnel`                   | `true`  | Whether to use serveo tunnel |
 
 ## Commands
 
