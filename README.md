@@ -1,8 +1,7 @@
 # HyVoiceChat
 
 Proximity voice chat mod for Hytale servers. Players connect through a web browser and can hear each other based on in-game distance and position. \
-Download on CurseForge: https://www.curseforge.com/hytale/mods/hyvoicechat \
-Note: This mod requires additional port for website/websocket
+Download on CurseForge: https://www.curseforge.com/hytale/mods/hyvoicechat
 
 ## How it works
 
